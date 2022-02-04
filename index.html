@@ -1,0 +1,77 @@
+<!doctype html>
+<title>Basic Emulator</title><!-- not BASIC! -->
+
+<style>
+</style>
+
+<script src="./build/libv86.js"></script>
+<script>
+"use strict";
+
+window.onload = function()
+{
+    var emulator = window.emulator = new V86Starter({
+        wasm_path: "./build/v86.wasm",
+        memory_size: 32 * 1024 * 1024,
+        vga_memory_size: 2 * 1024 * 1024,
+        screen_container: document.getElementById("screen_container"),
+        bios: {
+            url: "./bios/seabios.bin",
+        },
+        vga_bios: {
+            url: "./bios/vgabios.bin",
+        },
+        fda: {
+            url: "./os/build/padded-os-image.bin",
+        },
+        autostart: true,
+    });
+
+    var data = "";
+    emulator.add_listener("serial0-output-char", function(char)
+    {
+        if(char === "\r" || char === '\0')
+        {
+            data = "";
+            document.getElementById("terminal").value = "";
+            return;
+        }
+
+        data += char;
+        document.getElementById("terminal").value += char;
+
+        if(data.endsWith(";"))
+        {
+            if(data.startsWith("goto:"))
+            {
+                // Get the URL part
+                var url = data.slice(5, -1);
+                console.log("Goto URL:", url);
+            }
+
+            // Flush data
+            data = "";
+            document.getElementById("terminal").value = "";
+            return;
+        }
+    });
+
+
+    document.getElementById('custom-emulator-destroy').onclick = () => {
+        emulator.destroy()
+        emulator = undefined
+    }
+
+}
+</script>
+
+<!-- A minimal structure for the ScreenAdapter defined in browser/screen.js -->
+<div id="screen_container">
+    <div id="terminal_container" style="white-space: pre; font: 14px monospace; line-height: 16px"></div>
+    <canvas style="display: none"></canvas>
+</div>
+
+<!-- Serial terminal -->
+<textarea readonly rows=4 cols=60 id="terminal" style="display: none"></textarea>
+<br />
+<button id="custom-emulator-destroy">Destroy emulator</button>
