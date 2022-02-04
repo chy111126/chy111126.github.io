@@ -1,7 +1,34 @@
 <!doctype html>
-<title>Basic Emulator</title><!-- not BASIC! -->
-
+<title>Tom Chau's website</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+    #terminal_container {
+        white-space: pre; 
+        font: 14px monospace;
+        line-height: 16px;
+    }
+/* 
+    @media only screen and (max-width: 1023px) {
+        body {
+            background-color: red;
+        }
+        #terminal_container {
+            white-space: pre; 
+            font: 5px monospace;
+            line-height: 6px;
+        }
+    }
+
+    @media only screen and (max-width: 600px) {
+        body {
+            background-color: aqua;
+        }
+        #terminal_container {
+            white-space: pre; 
+            font: 14px monospace;
+            line-height: 16px;
+        }
+    } */
 </style>
 
 <script src="./build/libv86.js"></script>
@@ -47,6 +74,8 @@ window.onload = function()
                 // Get the URL part
                 var url = data.slice(5, -1);
                 console.log("Goto URL:", url);
+                window.open(url, "_blank");
+                pauseVM();
             }
 
             // Flush data
@@ -56,10 +85,26 @@ window.onload = function()
         }
     });
 
+    var resumeVM = function() {
+        console.log("Resume VM");
+        emulator.run();
+        document.getElementById('vm_state').innerHTML = "";
 
-    document.getElementById('custom-emulator-destroy').onclick = () => {
-        emulator.destroy()
-        emulator = undefined
+    }
+
+    var pauseVM = function() {
+        console.log("Pause VM");
+        emulator.stop();
+        document.getElementById('vm_state').innerHTML = "VM Paused!";
+
+    }
+
+    document.getElementById('custom-system-start').onclick = () => {
+        resumeVM();
+    }
+
+    document.getElementById('custom-system-stop').onclick = () => {
+        pauseVM();
     }
 
 }
@@ -67,11 +112,15 @@ window.onload = function()
 
 <!-- A minimal structure for the ScreenAdapter defined in browser/screen.js -->
 <div id="screen_container">
-    <div id="terminal_container" style="white-space: pre; font: 14px monospace; line-height: 16px"></div>
+    <div id="terminal_container"></div>
     <canvas style="display: none"></canvas>
 </div>
 
 <!-- Serial terminal -->
 <textarea readonly rows=4 cols=60 id="terminal" style="display: none"></textarea>
 <br />
-<button id="custom-emulator-destroy">Destroy emulator</button>
+Use Arrow keys and Enter to control the interface.
+<button id="custom-system-start">Play</button>
+<button id="custom-system-stop">Pause</button>
+<br />
+<div id="vm_state"></div>
